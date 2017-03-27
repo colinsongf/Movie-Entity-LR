@@ -1,6 +1,6 @@
 # Movie-Entity-LR
 
-##### Team member : Yue Chang(yc2966@columbia.edu), Jun Guo(jg3555@columbia.edu), Jieyu Yao(jy2806@columbia)
+##### Team member : Yue Chang(yc2966@columbia.edu), Jun Guo(jg3555@columbia.edu), Jieyu Yao(jy2806@columbia.edu)
 
 #### 1. Describe your entity resolution technique, as well as its precision, recall, and F1 score?
 ##### This algorithm is using logistical regression by three parameters: During time, Directors, Stars. The aim is to identify the different Ids in two files "amazon.csv" and "rotten_tomatoes.csv". The precision is 95% 

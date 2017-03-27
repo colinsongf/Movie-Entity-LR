@@ -1,11 +1,15 @@
+import re
+
 import numpy as np
 import pandas as pd
-import re
-import os
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from sklearn.linear_model import LogisticRegression as LogiReg
 from sklearn.model_selection import cross_val_score as crossVal
+
+DATA_PATH = "../data/"
+OUTPUT_PATH = "../output/"
+
 
 # team member:
 def parse_dur(timestr):
@@ -25,7 +29,7 @@ def parse_dur(timestr):
         mins = re.findall(r'[0-9]+[\s]*m', timestr)
         secs = re.findall(r'[0-9]+[\s]*s', timestr)
         tarray = [0, 0, 0]  # Default 0
-        tscale = [60, 1, 1/60]  # Scale to Minutes
+        tscale = [60, 1, 1 / 60]  # Scale to Minutes
         tinmins = 0  # Default 0
         for tind, tstr in enumerate([hrs, mins, secs]):
             if len(tstr) != 0:
@@ -122,6 +126,7 @@ def entry_parser(ent_amz, ent_tmt):
 
     return [dur_ratio, director_ratio, star_ratio]
 
+
 # Main Process Begins
 # ----------------------------------------------------------------------------------------------------------------------
 # Change this to your directory housing all the csv files.
@@ -129,14 +134,14 @@ def entry_parser(ent_amz, ent_tmt):
 
 # Read the training set first
 # coz it's easy
-df_train = pd.read_csv('train.csv', na_values=['NA'], engine='python', index_col=None)
+df_train = pd.read_csv(DATA_PATH + 'train.csv', na_values=['NA'], engine='python', index_col=None)
 trainlist_amz = list(df_train.iloc[:, 0])
 trainlist_tmt = list(df_train.iloc[:, 1])
 trainlist_ans = list(df_train.iloc[:, 2])
 
 # read the messy data files
-df_rottmt = read_rottmt('rotten_tomatoes.csv')
-df_amazon = read_amazon('amazon.csv')
+df_rottmt = read_rottmt(DATA_PATH + 'rotten_tomatoes.csv')
+df_amazon = read_amazon(DATA_PATH + 'amazon.csv')
 # Extract only relevant entries
 # In this case, training entries
 sl_amazon = df_amazon.loc[trainlist_amz, :]
@@ -159,7 +164,7 @@ xmat = np.array(xmat)
 yvec = np.array(trainlist_ans)
 
 # Cross-validation to find best regulatory term
-Cvec = np.power([2]*30, range(30))
+Cvec = np.power([2] * 30, range(30))
 Scores = np.arange(30, dtype=np.float64)
 for ind, Cval in enumerate(Cvec):
     cross_scores = crossVal(LogiReg(C=Cval), xmat, yvec, scoring='accuracy', cv=20)
@@ -169,10 +174,9 @@ model = LogiReg(C=Cbest)
 model = model.fit(xmat, yvec)
 print(model.coef_)  # For our information
 
-
 # Testing Procedure: test.csv
 # ----------------------------------------------------------------------------------------------------------------------
-df_test = pd.read_csv('test.csv', na_values=['NA'], engine='python', index_col=None)
+df_test = pd.read_csv(DATA_PATH + 'test.csv', na_values=['NA'], engine='python', index_col=None)
 testlist_amz = list(df_test.iloc[:, 0])
 testlist_tmt = list(df_test.iloc[:, 1])
 st_amazon = df_amazon.loc[testlist_amz, :]
@@ -190,11 +194,11 @@ yvec_predict = model.predict(xmat_test)
 # ----------------------------------------------------------------------------------------------------------------------
 # Write to csv
 goldframe = pd.DataFrame(data=yvec_predict, index=None, columns=["gold"])
-goldframe.to_csv('gold.csv', sep=',', index=False, index_label=False)
+goldframe.to_csv(OUTPUT_PATH + 'gold.csv', sep=',', index=False, index_label=False)
 
 # Testing Procedure: holdout.csv
 # ----------------------------------------------------------------------------------------------------------------------
-df_test = pd.read_csv('holdout.csv', na_values=['NA'], engine='python', index_col=None)
+df_test = pd.read_csv(DATA_PATH + 'holdout.csv', na_values=['NA'], engine='python', index_col=None)
 testlist_amz = list(df_test.iloc[:, 0])
 testlist_tmt = list(df_test.iloc[:, 1])
 st_amazon = df_amazon.loc[testlist_amz, :]
@@ -212,6 +216,6 @@ yvec_predict = model.predict(xmat_test)
 # ----------------------------------------------------------------------------------------------------------------------
 # Write to csv
 goldframe = pd.DataFrame(data=yvec_predict, index=None, columns=["gold"])
-goldframe.to_csv('gold2.csv', sep=',', index=False, index_label=False)
+goldframe.to_csv(OUTPUT_PATH + 'gold2.csv', sep=',', index=False, index_label=False)
 
 print('The end is the beginning is the end.')
